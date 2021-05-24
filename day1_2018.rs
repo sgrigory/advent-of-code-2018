@@ -4,8 +4,7 @@ use std::collections::HashSet;
 fn main() {
 
 	let content = fs::read_to_string("day1_input.txt").expect("error");
-	//println!("{}", content);
-
+	
 	let res: Vec<i32> = content.trim().split("\n").map(|x| x.parse::<i32>().unwrap()).collect();
 	let res_sum: i32 = res.iter().sum();
 	println!("{}", res_sum);
