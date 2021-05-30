@@ -12,23 +12,16 @@ struct Rect {
 }
 
 fn get_claim(s: &str) -> Rect {
-	// #1 @ 596,731: 11x27
-	let claim_re = Regex::new(r"#(\d+) @ (\d+).(\d+): (\d+)x(\d+)$").unwrap();//Regex::new(r".+ @ (x0),(y0): (dx)x(dy)").unwrap();
-	// let parsed = claim_re.captures(s).map(|cap| cap.iter().flat_map(|c| c).map(|c| c.as_str()).collect::<Vec<_>>()
-	// 	);
-	// for c in parsed {
-	// 	for a in c {
-	// 	println!("{}", a)
-	// };
-	// };
-	//println!("{}", s);
+	// input looks like: #1 @ 596,731: 11x27
+	let claim_re = Regex::new(r"#(\d+) @ (\d+).(\d+): (\d+)x(\d+)$").unwrap();
+
 	let parsed = claim_re.captures(s).unwrap();
 	let id: u32 = parsed.get(1).map_or("", |m| m.as_str()).parse().unwrap();
 	let x0: usize = parsed.get(2).map_or("", |m| m.as_str()).parse().unwrap();
 	let y0: usize = parsed.get(3).map_or("", |m| m.as_str()).parse().unwrap();
 	let dx: usize = parsed.get(4).map_or("", |m| m.as_str()).parse().unwrap();
 	let dy: usize = parsed.get(5).map_or("", |m| m.as_str()).parse().unwrap();
-	//println!("{} {} {} {}", x0, y0, dx, dy);
+	
 	Rect {id, x0, y0, dx, dy}
 }
 
@@ -68,12 +61,5 @@ fn main() {
 		}
 		println!("found one with no intersections: {}", r1.id)
 	}
-
-	// for row in field[0..20].iter() {
-	// 	for v in row[0..20].iter() {
-	// 		print!("{}", v);
-	// 	};
-	// 	println!("")
-	// }
 
 }
