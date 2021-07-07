@@ -28,22 +28,12 @@ type VertMap<'a> = HashMap<&'a str, Vertex<'a>>;
 
 
 fn find_next_vertices<'a>(a: &str, vertices: &VertMap<'a>) -> Vec<&'a str> {
-	println!("find_next_vertices: {}", a);
-
-	let vertex = &vertices[a];
-	let all_next_vertices = vertex.outs.clone().into_iter().collect::<Vec<&str>>();
-
-	println!("all_next_vertices = {}", all_next_vertices.join(""));
-
-	let unseen_next_vertices = all_next_vertices.into_iter().filter(|b| !vertices[b].seen).collect::<Vec<&str>>();
-
-	println!("unseen_next_vertices = {}", unseen_next_vertices.join(""));
-
-	//unseen_next_vertices.into_iter().for_each(|b| vertices[b].ins.clone().into_iter().for_each(|c| println!("{} {} {}", b, c, vertices[c].seen)));
 	
-	let final_next_vertices = unseen_next_vertices.into_iter().filter(|b| (vertices[b].ins.len() == 0) || (vertices[b].ins.clone().into_iter().all(|c| vertices[c].seen))).collect::<Vec<&str>>();
+	// Identify vertices which haven't been seen
+	let unseen_next_vertices = (&vertices[a]).outs.clone().into_iter().filter(|b| !vertices[b].seen).collect::<Vec<&str>>();
 
-	println!("final_next_vertices = {}", final_next_vertices.join(""));
+	// Filter out vertices for which some of the inputs still haven't been completed
+	let final_next_vertices = unseen_next_vertices.into_iter().filter(|b| (vertices[b].ins.len() == 0) || (vertices[b].ins.clone().into_iter().all(|c| vertices[c].seen))).collect::<Vec<&str>>();
 
 	final_next_vertices
 }
@@ -58,10 +48,6 @@ fn run_part1(input: &str) -> String {
 																									)
 																								).collect();
 
-	for (a, b) in &edges {
-		println!("{} {}", a, b)
-	};
-
 	// Create a vector of vertices, specifying incoming and outgoing neighbours of each
 	let mut vertices: VertMap = HashMap::new();
 	for (a, b) in edges {
@@ -74,26 +60,30 @@ fn run_part1(input: &str) -> String {
 
 	// Do width-first search
 	let mut path: Vec<&str> = Vec::new();
-	let mut reachable_vertices: Vec<&str> = vertices.iter().filter(|v| v.1.ins.len() == 0).map(|v| *v.0).collect();
-	let mut i = 0;
+	let mut reachable_vertices: HashSet<&str> = vertices.iter().filter(|v| v.1.ins.len() == 0).map(|v| *v.0).collect();
 	let mut change_flag = true;
-	while change_flag && (i < 1000) {
-		println!("new iter {}: reachable vertices = {}", i, reachable_vertices.join(""));
-		reachable_vertices.sort();
-		reachable_vertices.dedup();
+	while change_flag{
+		
+		let mut sorted_reachable: Vec<_> = reachable_vertices.clone().into_iter().collect();
+		sorted_reachable.sort();
+		
+		// Go through reachable vertices alphabetically till we find one which can be executed and haven't been seen before
 		change_flag = false;
-		for vertex_to_add in reachable_vertices.clone() {
+		for vertex_to_add in sorted_reachable {
+			
+			// If the vertex hasn been seen before, skip it
 			if (*vertices.get_mut(vertex_to_add).unwrap()).seen {
 				continue;
 			};
+
+			// If the vertex hasn't been seen before, add execute it - i.e. add to path
 			(*vertices.get_mut(vertex_to_add).unwrap()).seen = true;
 			change_flag = true;
 			path.push(vertex_to_add);
 
-			println!("new inner iter: path = {}", path.join(""));
-
+			// Get all vertices reachable from the one we just added
 			let new_vertices: Vec<&str> = path.iter().flat_map(|a| find_next_vertices(a, &vertices)).collect();
-			println!("new vertices = {}", new_vertices.join(""));
+			// If a new reachable vertex was found, add it to the list of reachable vertices and continue into the outer loop
 			if new_vertices.len() > 0 {
 				reachable_vertices.extend(&new_vertices);
 				break
@@ -101,7 +91,7 @@ fn run_part1(input: &str) -> String {
 			
 		};
 
-		i += 1;
+		
 	};
 
 	path.join("")
