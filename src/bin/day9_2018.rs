@@ -1,4 +1,4 @@
-// Day 8 for Advent of Code 2018: https://adventofcode.com/2018/day/8
+// Day 9 for Advent of Code 2018: https://adventofcode.com/2018/day/9
 
 use std::fs;
 use regex::Regex;
