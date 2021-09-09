@@ -5,8 +5,8 @@ fn run_part1(input: &str, n_iter: u32) -> i32 {
 
 	let lines: Vec<&str> = input.split("\n").filter(|s| s.len() > 0).collect();
 	let init_state = lines[0].split(": ").collect::<Vec<&str>>()[1];
-	let rules: Vec<(&[u8], u8)> = lines[1..lines.len()].iter().map(|x| x.split(" => ").collect()).map(|x: Vec<&str>| (x[0].as_bytes(), x[1].as_bytes()[0])).collect();
-	let mut state = [b'.'; 200];
+	let rules: Vec<(&[u8], u8)> = parse_rules(lines);
+	let mut state = vec![b'.'; 200];
 	let basis = (state.len() / 2) as usize;
 	for i in 0..init_state.len() {
 		state[i + basis] = init_state.as_bytes()[i];
@@ -14,22 +14,51 @@ fn run_part1(input: &str, n_iter: u32) -> i32 {
 	println!("{}", str::from_utf8(&state).unwrap());
 	println!("--------");
 	for _ in 0..n_iter {
-		let mut new_state = state.clone();
-		for rule in &rules {
-			//println!("{} {}", str::from_utf8(rule.0).unwrap(), rule.1);
-			for i in 3..state.len() - 3 {
-				if (state[i - 2] == rule.0[0]) & (state[i - 1] == rule.0[1]) & (state[i] == rule.0[2]) & (state[i + 1] == rule.0[3]) & (state[i + 2] == rule.0[4])
-					{
-						new_state[i] = rule.1;
-					}
-			}
-		}
-		state = new_state.clone();
+		println!("new iter");
+		state = transform_state(&state, &rules);
 		println!("{}", str::from_utf8(&state).unwrap());
 	};
 
 	(0..state.len()).filter(|&i| state[i] == b'#').map(|i| i as i32 - basis as i32).sum()
 }
+
+fn parse_rules(lines: Vec<&str>) -> Vec<(&[u8], u8)> {
+	lines[1..lines.len()].iter().map(|x| x.split(" => ").collect()).map(|x: Vec<&str>| (x[0].as_bytes(), x[1].as_bytes()[0])).collect()
+}
+
+
+fn transform_state<'a>(state: &'a [u8], rules: &Vec<(&[u8], u8)>) -> Vec<u8> {
+		let mut new_state = Vec::<u8>::new();
+		new_state = state.clone().to_vec();
+		//println!("starting with a state");
+		//println!("{}", str::from_utf8(&new_state).unwrap());
+			//println!("{} {}", str::from_utf8(rule.0).unwrap(), rule.1); 
+			for i in 0..state.len() {
+				new_state[i] = b'.';
+			  for rule in rules {
+				if (i > 1) && (i < state.len() - 2) && rule_matches(&state[i - 2..i + 3], rule.0)
+					{	
+						//println!("replacing {} with {} at {}", new_state[i], rule.1, i);
+						//println!("{}", str::from_utf8(&new_state).unwrap());
+						new_state[i] = rule.1;
+						//println!("{}", str::from_utf8(&new_state).unwrap());
+					}
+			}
+		}
+		//println!("returning new state");
+		//println!("{}", str::from_utf8(&new_state).unwrap());
+		new_state
+	}
+
+
+fn rule_matches(state_slice: &[u8], rule_lhs: &[u8]) -> bool {
+	let res = state_slice.iter().zip(rule_lhs.iter()).all(|x| x.0 == x.1);
+	// if res {
+	// 	println!("{} {} {} {} {}", state_slice.len(), rule_lhs.len(), str::from_utf8(&state_slice).unwrap(), str::from_utf8(&rule_lhs).unwrap(), res);
+	// }
+	res
+}
+
 
 #[test]
 fn test_part_1(){
@@ -51,6 +80,26 @@ fn test_part_1(){
 ####. => #";
 
 	assert_eq!(run_part1(test_input, 20), 325);
+}
+
+// #[test]
+// fn test_transform_state() {
+	
+// 	assert_eq!(transform_state(b"...##", &vec![(b"...##", b'#')]),
+// 							   b"..###");
+
+// 	assert_eq!(transform_state(b".#....##....", &vec![(b"...##", b'#')]),
+// 							   b".#...###....");
+
+// 	assert_eq!(transform_state(b".#...###....", &vec![(b"..###", b'.')]),
+// 						       b".#....##....");
+
+// }
+
+
+#[test]
+fn test_rule_matches() {
+	assert!(rule_matches(b"...#...", b"...#..."));
 }
 
 
