@@ -1,23 +1,29 @@
 use std::fs;
 use std::str;
 
+const buf_size: usize = 250;
+
 fn run_part1(input: &str, n_iter: u32) -> i32 {
 
 	let lines: Vec<&str> = input.split("\n").filter(|s| s.len() > 0).collect();
 	let init_state = lines[0].split(": ").collect::<Vec<&str>>()[1];
 	let rules: Vec<(&[u8], u8)> = parse_rules(lines);
-	let mut state = vec![b'.'; 200];
-	let basis = (state.len() / 2) as usize;
+	let mut state = vec![b'.'; buf_size];
+	let basis = 10; //(state.len() / 2) as usize;
 	for i in 0..init_state.len() {
 		state[i + basis] = init_state.as_bytes()[i];
 	};
 	println!("{}", str::from_utf8(&state).unwrap());
 	println!("--------");
-	for _ in 0..n_iter {
-		println!("new iter");
+	for i in 0..n_iter {
 		state = transform_state(&state, &rules);
-		println!("{}", str::from_utf8(&state).unwrap());
+		println!("{} {} {}", str::from_utf8(&state).unwrap(), get_pos_sum(&state, basis), i + 1);
 	};
+
+	get_pos_sum(&state, basis)
+}
+
+fn get_pos_sum(state: &[u8], basis: usize) -> i32{
 
 	(0..state.len()).filter(|&i| state[i] == b'#').map(|i| i as i32 - basis as i32).sum()
 }
@@ -60,8 +66,12 @@ fn rule_matches(state_slice: &[u8], rule_lhs: &[u8]) -> bool {
 }
 
 
+
+
+
 #[test]
 fn test_part_1(){
+	
 	let test_input = "initial state: #..#.#..##......###...###
 
 ...## => #
@@ -107,8 +117,34 @@ fn main() {
 
 	let file_content = fs::read_to_string("inputs/day12_input.txt").expect("error");
 
+	let test_input = "initial state: #..#.#..##......###...###
+
+...## => #
+..#.. => #
+.#... => #
+.#.#. => #
+.#.## => #
+.##.. => #
+.#### => #
+#.#.# => #
+#.### => #
+##.#. => #
+##.## => #
+###.. => #
+###.# => #
+####. => #";
+	
+
+	//let res_part_1 = run_part1(test_input, 100);	
+
 	let res_part_1 = run_part1(file_content.trim(), 20);
 
-	println!("{}", res_part_1);
+	println!("part 1 answer: {}", res_part_1);
+
+	let v1 = run_part1(file_content.trim(), 100);
+	let v2 = run_part1(file_content.trim(), 101);
+	let res_part_2 = (v2 - v1) as i64 * (50000000000i64 - 100) + v1 as i64;
+
+	println!("part 2 answer: {}", res_part_2);
 
 }
